@@ -9,11 +9,12 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.shdc.mobilesafe.R.string;
-import com.shdc.mobilesafe.utils.StreamTools;
-
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -22,11 +23,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.shdc.mobilesafe.utils.StreamTools;
 
 public class SplashActivity extends Activity {
 
@@ -61,6 +62,7 @@ public class SplashActivity extends Activity {
 			switch (msg.what) {
 			case SHOW_UPDATE_DIALOG:// 显示升级对话框
 				Log.i(TAG, "显示升级对话框");
+				showUpdateDialog();
 				break;
 
 			case ENTER_HOME:// 进入主页面
@@ -83,6 +85,10 @@ public class SplashActivity extends Activity {
 			}
 		}
 
+		/**
+		 * 进入主页面
+		 * 
+		 */
 		protected void enterHome() {
 			Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
 			startActivity(intent);
@@ -154,6 +160,36 @@ public class SplashActivity extends Activity {
 			}
 
 		}.start();
+	}
+
+	/**
+	 * 弹出升级对话框
+	 * 
+	 */
+	protected void showUpdateDialog() {
+		AlertDialog.Builder builder=new Builder(this);
+		builder.setTitle("提示升级");
+		builder.setMessage(description);
+		builder.setPositiveButton("立即升级", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		builder.setNegativeButton("下次再说", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				//enterHome();
+				
+			}
+		});
+		builder.show();
+		
+		
 	}
 
 	/**
