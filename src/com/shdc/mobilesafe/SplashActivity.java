@@ -24,6 +24,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +48,10 @@ public class SplashActivity extends Activity {
 		tv_splash_version.setText("版本号:" + getVersionName(this));
 
 		checkUpdate();
+		AlphaAnimation aa = new AlphaAnimation(0.2f, 1.0f);
+		aa.setDuration(500);
+		findViewById(R.id.rl_root_splash).startAnimation(aa);
+
 	}
 
 	private Handler handler = new Handler() {
@@ -79,9 +84,9 @@ public class SplashActivity extends Activity {
 		}
 
 		protected void enterHome() {
-			Intent intent=new Intent(SplashActivity.this, HomeActivity.class);
+			Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
 			startActivity(intent);
-			//关闭之前的activity
+			// 关闭之前的activity
 			finish();
 		}
 
@@ -94,7 +99,7 @@ public class SplashActivity extends Activity {
 		new Thread() {
 			@Override
 			public void run() {
-				long startTime=System.currentTimeMillis();
+				long startTime = System.currentTimeMillis();
 				Message msg = Message.obtain();
 				try {
 					URL url = new URL(getString(R.string.serverurl));
@@ -102,7 +107,7 @@ public class SplashActivity extends Activity {
 							.openConnection();
 					conn.setRequestMethod("GET");// 设置请求方式
 					conn.setConnectTimeout(3000);// 设置超时时间
-					//conn.setReadTimeout(2000);
+					// conn.setReadTimeout(2000);
 					// 获取响应码
 					int code = conn.getResponseCode();
 					if (code / 100 == 2) { // 200表示联网成功
@@ -133,14 +138,14 @@ public class SplashActivity extends Activity {
 					msg.what = JSON_ERROR;
 					e.printStackTrace();
 				} finally {
-					long endTime=System.currentTimeMillis();
-					//运行时间
-					long dTime=endTime-startTime;
-					if(dTime<2000){
+					long endTime = System.currentTimeMillis();
+					// 运行时间
+					long dTime = endTime - startTime;
+					if (dTime < 2000) {
 						try {
-							Thread.sleep(2000-dTime);
+							Thread.sleep(2000 - dTime);
 						} catch (InterruptedException e) {
-							
+
 							e.printStackTrace();
 						}
 					}

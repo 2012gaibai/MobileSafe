@@ -15,7 +15,8 @@ public final class R {
         public static final int luncher_bg=0x7f020001;
     }
     public static final class id {
-        public static final int tv_splash_version=0x7f060000;
+        public static final int rl_root_splash=0x7f060000;
+        public static final int tv_splash_version=0x7f060001;
     }
     public static final class layout {
         public static final int activity_home=0x7f030000;
