@@ -1,25 +1,33 @@
 package com.shdc.mobilesafe;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import net.tsz.afinal.FinalHttp;
+import net.tsz.afinal.http.AjaxCallBack;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -40,6 +48,7 @@ public class SplashActivity extends Activity {
 	private TextView tv_splash_version;
 	private String description;
 	private String apkurl;
+	private TextView tv_update_info;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +56,7 @@ public class SplashActivity extends Activity {
 		setContentView(R.layout.activity_splash);
 		tv_splash_version = (TextView) findViewById(R.id.tv_splash_version);
 		tv_splash_version.setText("版本号:" + getVersionName(this));
+		tv_update_info=(TextView) findViewById(R.id.tv_update_info);
 
 		checkUpdate();
 		AlphaAnimation aa = new AlphaAnimation(0.2f, 1.0f);
@@ -85,18 +95,18 @@ public class SplashActivity extends Activity {
 			}
 		}
 
-		/**
-		 * 进入主页面
-		 * 
-		 */
-		protected void enterHome() {
-			Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
-			startActivity(intent);
-			// 关闭之前的activity
-			finish();
-		}
-
 	};
+
+	/**
+	 * 进入主页面
+	 * 
+	 */
+	protected void enterHome() {
+		Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
+		startActivity(intent);
+		// 关闭之前的activity
+		finish();
+	}
 
 	/**
 	 * 检查是否有新版本，如果有就升级
@@ -167,29 +177,88 @@ public class SplashActivity extends Activity {
 	 * 
 	 */
 	protected void showUpdateDialog() {
-		AlertDialog.Builder builder=new Builder(this);
+		AlertDialog.Builder builder = new Builder(this);
 		builder.setTitle("提示升级");
-		builder.setMessage(description);
-		builder.setPositiveButton("立即升级", new OnClickListener() {
+		builder.setOnCancelListener(new OnCancelListener() {
 			
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
+			public void onCancel(DialogInterface dialog) {
+				enterHome();
+				dialog.dismiss();
 				
+			}
+		});
+		builder.setMessage(description);
+		builder.setPositiveButton("立即升级", new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// 下载apk，并且替换安装
+				if (Environment.getExternalStorageState().equals(
+						Environment.MEDIA_MOUNTED)) {
+					// sdcard存在
+					// afinal
+					FinalHttp finalHttp = new FinalHttp();
+					Log.i(TAG, apkurl);
+					finalHttp.download(apkurl, Environment
+							.getExternalStorageDirectory().getAbsolutePath()
+							+ "/mobilesafe.apk", new AjaxCallBack<File>() {
+
+								@Override
+								public void onFailure(Throwable t, int errorNo,
+										String strMsg) {
+									t.printStackTrace();
+									Toast.makeText(getApplicationContext(), "下载失败", 1).show();
+									super.onFailure(t, errorNo, strMsg);
+								}
+
+								@Override
+								public void onLoading(long count, long current) {
+									// TODO Auto-generated method stub
+									super.onLoading(count, current);
+									int progress=(int) (current*100/count);
+									tv_update_info.setText("下载进度："+progress+"%");
+								}
+
+								@Override
+								public void onSuccess(File t) {
+									// TODO Auto-generated method stub
+									super.onSuccess(t);
+									//安装apk
+									installApk(t);
+									
+								}
+
+								private void installApk(File t) {
+									Intent intent=new Intent();
+									intent.setAction("android.intent.action.VIEW");
+									intent.addCategory("android.intent.category.DEFAULT");
+									intent.setDataAndType(Uri.fromFile(t), "application/vnd.android.package-archive");
+									SplashActivity.this.startActivity(intent);
+									
+								}
+						
+					});
+
+				} else {
+					Toast.makeText(getApplicationContext(), "没有sdcard,请安装上再试",
+							0).show();
+					return;
+				}
+
 			}
 		});
 		builder.setNegativeButton("下次再说", new OnClickListener() {
-			
+
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.dismiss();
-				//enterHome();
-				
+				enterHome();
+
 			}
 		});
 		builder.show();
-		
-		
+
 	}
 
 	/**
