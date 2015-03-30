@@ -235,6 +235,7 @@ public class SplashActivity extends Activity {
 									intent.addCategory("android.intent.category.DEFAULT");
 									intent.setDataAndType(Uri.fromFile(t), "application/vnd.android.package-archive");
 									SplashActivity.this.startActivity(intent);
+									SplashActivity.this.finish();
 									
 								}
 						
