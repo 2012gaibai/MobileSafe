@@ -13,12 +13,28 @@
         android:text="功能列表"
         android:textColor="#000000"
         android:textSize="22sp" />
+  
+<!--   跑马灯的效果 
+    android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusable="true"
+        android:singleLine="true"
+        android:ellipsize="marquee" -->
+    <com.shdc.mobilesafe.ui.FocusedTextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:text="最新的手机卫士，快来下载啊，下载送好吃的，最新的手机卫士，快来下载啊，下载送好吃的"
+        android:textSize="18sp" />
     <!-- 九宫格 -->
 
     <GridView
-        android:numColumns="3"
         android:id="@+id/list_home"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="15dip"
+        android:numColumns="3"
+        android:verticalSpacing="10dip" />
 
 </LinearLayout>
