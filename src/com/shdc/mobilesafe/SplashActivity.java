@@ -22,6 +22,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -31,6 +32,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +51,7 @@ public class SplashActivity extends Activity {
 	private String description;
 	private String apkurl;
 	private TextView tv_update_info;
+	private SharedPreferences sp;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +59,23 @@ public class SplashActivity extends Activity {
 		setContentView(R.layout.activity_splash);
 		tv_splash_version = (TextView) findViewById(R.id.tv_splash_version);
 		tv_splash_version.setText("版本号:" + getVersionName(this));
-		tv_update_info=(TextView) findViewById(R.id.tv_update_info);
+		tv_update_info = (TextView) findViewById(R.id.tv_update_info);
+		sp = getSharedPreferences("config", MODE_PRIVATE);
+		if (sp.getBoolean("update", false)) {
+			// 检查升级
+			checkUpdate();
+		} else {
+			// 不升级，暂停两秒
+			handler.postDelayed(new Runnable() {
 
-		checkUpdate();
+				@Override
+				public void run() {
+					enterHome();
+
+				}
+			}, 2000);
+		}
+
 		AlphaAnimation aa = new AlphaAnimation(0.2f, 1.0f);
 		aa.setDuration(500);
 		findViewById(R.id.rl_root_splash).startAnimation(aa);
@@ -180,12 +197,12 @@ public class SplashActivity extends Activity {
 		AlertDialog.Builder builder = new Builder(this);
 		builder.setTitle("提示升级");
 		builder.setOnCancelListener(new OnCancelListener() {
-			
+
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				enterHome();
 				dialog.dismiss();
-				
+
 			}
 		});
 		builder.setMessage(description);
@@ -204,41 +221,44 @@ public class SplashActivity extends Activity {
 							.getExternalStorageDirectory().getAbsolutePath()
 							+ "/mobilesafe.apk", new AjaxCallBack<File>() {
 
-								@Override
-								public void onFailure(Throwable t, int errorNo,
-										String strMsg) {
-									t.printStackTrace();
-									Toast.makeText(getApplicationContext(), "下载失败", 1).show();
-									super.onFailure(t, errorNo, strMsg);
-								}
+						@Override
+						public void onFailure(Throwable t, int errorNo,
+								String strMsg) {
+							t.printStackTrace();
+							Toast.makeText(getApplicationContext(), "下载失败", 1)
+									.show();
+							super.onFailure(t, errorNo, strMsg);
+						}
 
-								@Override
-								public void onLoading(long count, long current) {
-									// TODO Auto-generated method stub
-									super.onLoading(count, current);
-									int progress=(int) (current*100/count);
-									tv_update_info.setText("下载进度："+progress+"%");
-								}
+						@Override
+						public void onLoading(long count, long current) {
+							tv_update_info.setVisibility(View.VISIBLE);
+							super.onLoading(count, current);
 
-								@Override
-								public void onSuccess(File t) {
-									// TODO Auto-generated method stub
-									super.onSuccess(t);
-									//安装apk
-									installApk(t);
-									
-								}
+							int progress = (int) (current * 100 / count);
+							tv_update_info.setText("下载进度：" + progress + "%");
+						}
 
-								private void installApk(File t) {
-									Intent intent=new Intent();
-									intent.setAction("android.intent.action.VIEW");
-									intent.addCategory("android.intent.category.DEFAULT");
-									intent.setDataAndType(Uri.fromFile(t), "application/vnd.android.package-archive");
-									SplashActivity.this.startActivity(intent);
-									SplashActivity.this.finish();
-									
-								}
-						
+						@Override
+						public void onSuccess(File t) {
+							// TODO Auto-generated method stub
+							super.onSuccess(t);
+							// 安装apk
+							installApk(t);
+
+						}
+
+						private void installApk(File t) {
+							Intent intent = new Intent();
+							intent.setAction("android.intent.action.VIEW");
+							intent.addCategory("android.intent.category.DEFAULT");
+							intent.setDataAndType(Uri.fromFile(t),
+									"application/vnd.android.package-archive");
+							SplashActivity.this.startActivity(intent);
+							SplashActivity.this.finish();
+
+						}
+
 					});
 
 				} else {
